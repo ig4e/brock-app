@@ -1,0 +1,65 @@
+{
+  "name": "@acme/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "dev": "concurrently \"tsc --watch\" \"nodemon node dist/index.js\"",
+    "clean": "rm -rf .turbo node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@hono/node-server": "^1.11.2",
+    "@hono/trpc-server": "^0.3.1",
+    "@lucia-auth/adapter-prisma": "^4.0.1",
+    "@node-rs/argon2": "^1.8.3",
+    "@prisma/client": "^5.15.0",
+    "@trpc/server": "11.0.0-rc.364",
+    "axios": "^1.7.2",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
+    "filesize": "^10.1.2",
+    "fluent-ffmpeg": "^2.1.3",
+    "hono": "^4.4.3",
+    "lodash": "^4.17.21",
+    "lucia": "^3.2.0",
+    "memfs": "^4.9.2",
+    "mime": "^4.0.3",
+    "mp4box": "^0.5.2",
+    "mux.js": "^6.3.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "nodemon": "^3.1.3",
+    "p-limit": "^5.0.0",
+    "sharp": "^0.33.4",
+    "superjson": "2.2.1",
+    "telegraf": "^4.16.3",
+    "uuid": "^9.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@acme/eslint-config": "workspace:*",
+    "@acme/prettier-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*",
+    "@types/fluent-ffmpeg": "^2.1.24",
+    "@types/lodash": "^4.17.4",
+    "@types/node": "^20.14.0",
+    "@types/node-telegram-bot-api": "^0.64.6",
+    "@types/uuid": "^9.0.8",
+    "eslint": "^9.2.0",
+    "prettier": "^3.2.5",
+    "prisma": "^5.15.0",
+    "typescript": "^5.4.5"
+  },
+  "prettier": "@acme/prettier-config"
+}

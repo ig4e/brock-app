@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @map("_id")
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+model User {
+  id       String    @id @default(uuid()) @map("_id")
+  username String    @unique
+  password String
+  sessions Session[]
+
+  folders Folder[]
+  files   File[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Folder {
+  id    String @id @default(uuid()) @map("_id")
+  name  String
+  files File[]
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model File {
+  id       String @id @default(uuid()) @map("_id")
+  name     String
+  encoding String
+  mimetype String
+  size     BigInt
+
+  folder Folder? @relation(fields: [folderId], references: [id])
+  chunks Chunk[]
+  user   User    @relation(fields: [userId], references: [id])
+
+  userId   String
+  folderId String?
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  thumbnail Thumbnail?
+}
+
+model Thumbnail {
+  id       String               @id @default(uuid()) @map("_id")
+  name     String
+  mimetype String
+  file     File                 @relation(fields: [fileId], references: [id])
+  telegram TelegramProviderData
+
+  fileId String @unique
+}
+
+model Chunk {
+  id       String               @id @default(uuid()) @map("_id")
+  number   Int
+  file     File                 @relation(fields: [fileId], references: [id])
+  telegram TelegramProviderData
+
+  fileId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+type TelegramProviderData {
+  chatId    Int
+  messageId Int
+  fileId    String
+}
+
+enum Provider {
+  DISCORD
+  TELEGRAM
+}
