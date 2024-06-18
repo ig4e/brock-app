@@ -1,5 +1,5 @@
 import { Toast, useToastState } from "@tamagui/toast";
-import { Theme } from "tamagui";
+import { Theme, ThemeName } from "tamagui";
 
 declare module "@tamagui/toast" {
   interface CustomData {
@@ -15,8 +15,24 @@ export function Toaster() {
     return null;
   }
 
+  let toastTheme = "purple" as ThemeName;
+
+  switch (toast.preset) {
+    case "success":
+      toastTheme = "green";
+      break;
+    case "warning":
+      toastTheme = "yellow";
+      break;
+    case "destructive":
+      toastTheme = "red";
+      break;
+    default:
+      toastTheme = "purple";
+  }
+
   return (
-    <Theme name={toast.preset}>
+    <Theme name={toastTheme}>
       <Toast
         key={toast.id}
         duration={toast.duration}

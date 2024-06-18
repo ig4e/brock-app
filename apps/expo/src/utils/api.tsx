@@ -7,6 +7,8 @@ import superjson from "superjson";
 
 import type { AppRouter } from "@acme/api";
 
+import { useAuthStore } from "~/stores/auth";
+
 /**
  * A set of typesafe hooks for consuming your API.
  */
@@ -59,6 +61,13 @@ export function TRPCProvider(props: { children: React.ReactNode }) {
           headers() {
             const headers = new Map<string, string>();
             headers.set("x-trpc-source", "expo-react");
+            headers.set(
+              "Authorization",
+              "Bearer " + useAuthStore.getState().token,
+            );
+
+            console.log(Object.fromEntries(headers));
+
             return Object.fromEntries(headers);
           },
         }),

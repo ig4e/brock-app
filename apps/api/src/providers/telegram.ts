@@ -93,6 +93,52 @@ export class TelegramProvider {
     };
   }
 
+  async uploadVideo({ data }: { data: Buffer }) {
+    let response:
+      | Awaited<ReturnType<typeof client.telegram.sendVideo>>
+      | undefined;
+    let retries = 0;
+
+    while (!response && retries < 10) {
+      try {
+        const chatId =
+          config.chatIDs[Math.floor(Math.random() * config.chatIDs.length)];
+        response = await client.telegram.sendVideo(chatId!, {
+          source: data,
+        });
+        console.log("Uploaded file to Telegram");
+      } catch (err) {
+        console.error(err);
+        const retryAfter = (err as any).response.parameters.retry_after;
+        console.log(`Retrying in ${retryAfter} seconds`);
+        await new Promise((resolve) =>
+          setTimeout(resolve, (retryAfter ?? 2) * 1000),
+        );
+      }
+      retries++;
+    }
+
+    if (!response) throw new Error("Failed to upload file");
+
+    const {
+      chat: { id: mChatId },
+      message_id: messageId,
+      video: { file_id: fileId },
+    } = response;
+
+    const fileUrl = (await client.telegram.getFileLink(fileId)).toString();
+
+    return {
+      url: fileUrl,
+      vide: response.video,
+      telegram: {
+        fileId: fileId,
+        chatId: mChatId,
+        messageId: messageId,
+      },
+    };
+  }
+
   async downloadChunk({
     id,
     stream,

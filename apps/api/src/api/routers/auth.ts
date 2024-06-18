@@ -1,4 +1,7 @@
+import { z } from "zod";
+
 import { lucia } from "../auth/index.js";
+import { signIn, signUp } from "../auth/password.js";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -6,6 +9,28 @@ import {
 } from "../trpc.js";
 
 export const authRouter = createTRPCRouter({
+  signIn: publicProcedure
+    .input(
+      z.object({
+        username: z.string(),
+        password: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return await signIn(input);
+    }),
+
+  signUp: publicProcedure
+    .input(
+      z.object({
+        username: z.string(),
+        password: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return await signUp(input);
+    }),
+
   getSession: publicProcedure.query(({ ctx }) => {
     return ctx.session;
   }),

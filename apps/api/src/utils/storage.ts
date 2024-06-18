@@ -1,7 +1,12 @@
 import { Buffer } from "buffer";
-import { Readable, Writable } from "stream";
+import { randomUUID } from "crypto";
+import fs from "fs";
+import os from "os";
+import path from "path";
+import { PassThrough, Readable, Writable } from "stream";
 import ffmpegPath from "@ffmpeg-installer/ffmpeg";
 import ffmpeg from "fluent-ffmpeg";
+import { uniqueId } from "lodash";
 import { createFsFromVolume, Volume } from "memfs";
 import mime from "mime";
 import sharp from "sharp";
@@ -216,11 +221,13 @@ export class Storage {
         ext: "jpg",
       };
     } else if (file.type.startsWith("video")) {
-      const thumbnailBuffer = await getThumbnail(
+      const thumbnailBuffer = await this.generateVideoThumbnail(
         Buffer.from(await file.arrayBuffer()),
-        1,
-        mime.getExtension(file.type) ?? "mp4",
-      );
+      ).catch(() => {
+        return null; // Ignore errors
+      });
+
+      if (!thumbnailBuffer) return null;
 
       const buffer = await sharp(thumbnailBuffer)
         .resize(400)
@@ -235,6 +242,66 @@ export class Storage {
         ext: "jpg",
       };
     }
+  }
+
+  private generateVideoThumbnail(fileBuffer: Buffer): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const fileStream = new PassThrough();
+      fileStream.end(fileBuffer);
+
+      const tempFilePath = path.join(
+        os.tmpdir(),
+        `temp_video_file_${Date.now()}.mp4`,
+      );
+
+      fs.writeFile(tempFilePath, fileBuffer, async (err) => {
+        if (err) {
+          return reject(err);
+        }
+
+        const outputFilePath = path.join(
+          os.tmpdir(),
+          `thumbnail_${Date.now()}.jpg`,
+        );
+
+        const duration = await this.getVideoDuration(tempFilePath);
+        const timestamp = (duration * 0.1).toFixed(2);
+
+        ffmpeg(tempFilePath)
+          .on("end", () => {
+            fs.readFile(outputFilePath, (readErr, data) => {
+              if (readErr) {
+                return reject(readErr);
+              }
+              resolve(data);
+              fs.unlink(tempFilePath, () => {});
+              fs.unlink(outputFilePath, () => {});
+            });
+          })
+          .on("error", (ffmpegErr) => {
+            reject(ffmpegErr);
+          })
+          .screenshots({
+            count: 1,
+            timemarks: [timestamp],
+            size: "400x?",
+            filename: outputFilePath,
+          });
+      });
+    });
+  }
+
+  private async getVideoDuration(filePath: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(filePath, (err, metadata) => {
+        if (err) {
+          reject(err);
+        } else {
+          //@ts-expect-error eh
+          resolve(metadata.format.duration);
+        }
+      });
+    });
   }
 
   private async uploadChunk({

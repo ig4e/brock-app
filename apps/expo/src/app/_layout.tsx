@@ -2,6 +2,7 @@ import "@bacons/text-decoder/install";
 
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Font from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -11,6 +12,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { ToastProvider, ToastViewport } from "@tamagui/toast";
 import { TamaguiProvider } from "tamagui";
 
 import { Toaster } from "~/components/toaster";
@@ -28,6 +30,7 @@ SplashScreen.preventAutoHideAsync();
 // It wraps your pages with the providers they need
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const { left, top, right } = useSafeAreaInsets();
 
   const [loaded] = Font.useFonts({
     Inter: require("@tamagui/font-inter/otf/Inter-Medium.otf"),
@@ -49,19 +52,36 @@ export default function RootLayout() {
       config={tamaguiConfig}
       defaultTheme={colorScheme as string}
     >
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <TRPCProvider>
-          {/*
+      <ToastProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <TRPCProvider>
+            {/*
           The Stack component displays the current page.
           It also allows you to configure your screens 
         */}
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false, title: "Home" }} />
-          </Stack>
-          <StatusBar />
-          <Toaster />
-        </TRPCProvider>
-      </ThemeProvider>
+            <Stack>
+              <Stack.Screen
+                name="index"
+                options={{ headerShown: false, title: "Home" }}
+              />
+              <Stack.Screen
+                name="(auth)"
+                options={{ headerShown: false, title: "Auth" }}
+              />
+            </Stack>
+            <StatusBar />
+            <Toaster />
+            <ToastViewport
+              flexDirection="column-reverse"
+              top={top}
+              left={left}
+              right={right}
+            />
+          </TRPCProvider>
+        </ThemeProvider>
+      </ToastProvider>
     </TamaguiProvider>
   );
 }

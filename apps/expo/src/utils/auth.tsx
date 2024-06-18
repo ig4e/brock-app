@@ -12,6 +12,7 @@ export function useSession() {
     isLoading,
     isError,
     refetch,
+    
   } = api.auth.getSession.useQuery(undefined);
 
   useEffect(() => {

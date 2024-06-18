@@ -50,6 +50,7 @@ export const fileRouter = createTRPCRouter({
         cursor: cursor ? { id: cursor } : undefined,
         orderBy: { createdAt: input.sortBy },
         where: { userId: ctx.session.user.id },
+        include: { thumbnail: true },
       });
 
       let nextCursor: typeof cursor | undefined = undefined;

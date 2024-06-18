@@ -1,10 +1,6 @@
 import SplashLogo from "../../assets/icon.png";
-import Ac from "../../assets/images/devices/ac.png";
-import Refrigerator from "../../assets/images/devices/fridge.png";
-import WashingMachine from "../../assets/images/devices/washing-machine.png";
-import WaterHeater from "../../assets/images/devices/water-heater.png";
-import LoginBG from "../../assets/images/login.png";
+import LoginBG3 from "../../assets/images/cool-image-upscaled-2.jpg";
+import LoginBG2 from "../../assets/images/cool-image-upscaled.jpg";
+import LoginBG from "../../assets/images/cool-image.jpg";
 
-export const deviceImages = { Refrigerator, Ac, WashingMachine, WaterHeater };
-
-export { LoginBG, SplashLogo };
+export { LoginBG, LoginBG2, LoginBG3, SplashLogo };
