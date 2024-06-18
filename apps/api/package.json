@@ -12,7 +12,8 @@
   "license": "MIT",
   "scripts": {
     "start": "node dist/index.js",
-    "build": "tsc",
+    "build": "pnpx prisma db push && pnpm run build-ts",
+    "build-ts": "tsc",
     "dev": "concurrently \"tsc --watch\" \"nodemon node dist/index.js\"",
     "clean": "rm -rf .turbo node_modules",
     "format": "prettier --check . --ignore-path ../../.gitignore",
