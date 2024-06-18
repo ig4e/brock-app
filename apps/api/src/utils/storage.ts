@@ -5,6 +5,7 @@ import path from "path";
 import { PassThrough } from "stream";
 import type { Readable } from "stream";
 import ffmpegPath from "ffmpeg-static";
+import ffprobeStatic from "ffprobe-static";
 import ffmpeg from "fluent-ffmpeg";
 import sharp from "sharp";
 import { v1 } from "uuid";
@@ -14,6 +15,7 @@ import { prisma } from "../db.js";
 import { TelegramProvider } from "../providers/telegram.js";
 
 if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
+if (ffprobeStatic) ffmpeg.setFfprobePath(ffprobeStatic.path);
 
 export class Storage {
   private CHUNK_SIZE = 20 * 1024 * 1024;
