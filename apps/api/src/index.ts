@@ -3,24 +3,24 @@ import { trpcServer } from "@hono/trpc-server";
 
 import "dotenv/config";
 
-import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { Hono } from "hono";
 import { hc } from "hono/client";
 import { compress } from "hono/compress";
 import { cors } from "hono/cors";
 
+import type { validateHonoSession } from "./api/auth/index.js";
 import type { AppRouter } from "./api/index.js";
-import { validateHonoSession } from "./api/auth/index.js";
 import { authRouter } from "./api/auth/router.js";
 import { appRouter } from "./api/index.js";
 import { createTRPCContext } from "./api/trpc.js";
 import { fileRouter } from "./routers/file.js";
 
-export type Env = {
+export interface Env {
   Variables: {
     session: Awaited<ReturnType<typeof validateHonoSession>>;
   };
-};
+}
 
 const app = new Hono<Env>({
   strict: true,
@@ -36,7 +36,7 @@ app.use(
       const [_emptySpace, sessionId = ""] = (
         req.header("authorization") ?? ""
       ).split("Bearer");
-      return createTRPCContext({ sessionId: (sessionId ?? "").trim() });
+      return createTRPCContext({ sessionId: sessionId.trim() });
     },
   }),
 );
