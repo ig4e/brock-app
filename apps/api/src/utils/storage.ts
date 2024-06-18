@@ -15,7 +15,7 @@ import { prisma } from "../db.js";
 import { TelegramProvider } from "../providers/telegram.js";
 
 if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
-if (ffprobeStatic) ffmpeg.setFfprobePath(ffprobeStatic.path);
+ffmpeg.setFfprobePath(ffprobeStatic.path);
 
 export class Storage {
   private CHUNK_SIZE = 20 * 1024 * 1024;
@@ -150,7 +150,8 @@ export class Storage {
     } else if (file.type.startsWith("video")) {
       const thumbnailBuffer = await this.generateVideoThumbnail(
         Buffer.from(await file.arrayBuffer()),
-      ).catch(() => {
+      ).catch((err) => {
+        console.log(err);
         return null; // Ignore errors
       });
 
