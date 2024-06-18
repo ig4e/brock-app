@@ -1,14 +1,11 @@
 import { Buffer } from "buffer";
-import { randomUUID } from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { PassThrough, Readable, Writable } from "stream";
-import ffmpegPath from "@ffmpeg-installer/ffmpeg";
+import { PassThrough } from "stream";
+import type { Readable } from "stream";
+import ffmpegPath from "ffmpeg-static";
 import ffmpeg from "fluent-ffmpeg";
-import { uniqueId } from "lodash";
-import { createFsFromVolume, Volume } from "memfs";
-import mime from "mime";
 import sharp from "sharp";
 import { v1 } from "uuid";
 
@@ -16,79 +13,7 @@ import { internalUploadChunkLimit } from "../config.js";
 import { prisma } from "../db.js";
 import { TelegramProvider } from "../providers/telegram.js";
 
-ffmpeg.setFfmpegPath(ffmpegPath.path);
-
-function bufferToStream(buffer: Buffer): Readable {
-  const readable = new Readable();
-  readable._read = () => {};
-  readable.push(buffer);
-  readable.push(null);
-  return readable;
-}
-
-class WritableBufferStream extends Writable {
-  private chunks: Buffer[] = [];
-
-  _write(chunk: any, encoding: string, callback: Function) {
-    this.chunks.push(Buffer.from(chunk));
-    callback();
-  }
-
-  getBuffer() {
-    return Buffer.concat(this.chunks);
-  }
-}
-
-async function getThumbnail(
-  buffer: Buffer,
-  timeInSeconds: number,
-  format: string,
-): Promise<Buffer> {
-  const inputStream = bufferToStream(buffer);
-  const outputStream = new WritableBufferStream();
-
-  return new Promise((resolve, reject) => {
-    ffmpeg(inputStream)
-      .inputOptions([
-        `-ss ${timeInSeconds}`,
-        "-analyzeduration 100M",
-        "-probesize 50M",
-      ])
-      .inputFormat(format) // Use the file format
-      .outputOptions(["-vframes 1", "-f image2pipe", "-vcodec png"])
-      .format("image2pipe")
-      .on("start", (commandLine) => {
-        console.log("Spawned ffmpeg with command: " + commandLine);
-      })
-      .on("progress", (progress) => {
-        console.log(
-          "Processing: " +
-            (progress.percent ? progress.percent.toFixed(2) : 0) +
-            "% done",
-        );
-      })
-      .on("stderr", (stderrLine) => {
-        console.log("Stderr output: " + stderrLine);
-      })
-      .on("error", (err) => {
-        console.error("Error: " + err.message);
-        reject(err);
-      })
-      .on("end", () => {
-        try {
-          const resultBuffer = outputStream.getBuffer();
-          if (resultBuffer.length === 0) {
-            reject(new Error("Output buffer is empty"));
-          } else {
-            resolve(resultBuffer);
-          }
-        } catch (err) {
-          reject(err);
-        }
-      })
-      .pipe(outputStream, { end: true });
-  });
-}
+if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
 
 export class Storage {
   private CHUNK_SIZE = 20 * 1024 * 1024;
@@ -150,7 +75,7 @@ export class Storage {
       data: {
         name: encodedFileName,
         size: file.size,
-        mimetype: file.type ?? mime.getType(file.name),
+        mimetype: file.type,
         encoding: "utf8",
         user: {
           connect: {
@@ -254,6 +179,7 @@ export class Storage {
         `temp_video_file_${Date.now()}.mp4`,
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       fs.writeFile(tempFilePath, fileBuffer, async (err) => {
         if (err) {
           return reject(err);
@@ -274,8 +200,8 @@ export class Storage {
                 return reject(readErr);
               }
               resolve(data);
-              fs.unlink(tempFilePath, () => {});
-              fs.unlink(outputFilePath, () => {});
+              fs.unlink(tempFilePath, console.log);
+              fs.unlink(outputFilePath, console.log);
             });
           })
           .on("error", (ffmpegErr) => {
@@ -297,7 +223,7 @@ export class Storage {
         if (err) {
           reject(err);
         } else {
-          //@ts-expect-error eh
+          //@ts-expect-error  -- I don't know
           resolve(metadata.format.duration);
         }
       });
