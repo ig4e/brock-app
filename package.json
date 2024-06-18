@@ -6,6 +6,7 @@
   },
   "packageManager": "pnpm@9.1.0",
   "scripts": {
+    "start:api": "pnpm -F api start",
     "build": "turbo build",
     "clean": "git clean -xdf node_modules",
     "clean:workspaces": "turbo clean",
