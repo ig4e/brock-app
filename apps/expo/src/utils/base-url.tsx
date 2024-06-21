@@ -18,7 +18,7 @@ export const getBaseUrl = () => {
   const localhost = debuggerHost?.split(":")[0];
 
   if (!localhost) {
-    return "https://sala7-turbo-nextjs.vercel.app";
+    return "https://bored-sisely-api-ig5e-5c10c456.koyeb.app";
     throw new Error(
       "Failed to get localhost. Please point to your production server.",
     );

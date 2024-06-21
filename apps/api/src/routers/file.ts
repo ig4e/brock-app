@@ -1,26 +1,26 @@
-import { File as DBFile } from "../db.js";
+import type { File as DBFile } from "../db.js";
 
 import "dotenv/config";
 
 import { ReadableStream } from "stream/web";
 import { Hono } from "hono";
 
+import type { Env } from "../index.js";
 import { validateSession } from "../api/auth/index.js";
 import { uploadLimit } from "../config.js";
 import { prisma } from "../db.js";
-import { Env } from "../index.js";
 import { Storage } from "../utils/storage.js";
 
 const app = new Hono<Env>();
 
-app.post("/upload", validateSession, async ({ req, res, ...c }) => {
+app.post("/upload", validateSession, async ({ req, ...c }) => {
   try {
     const body = await req.parseBody({ all: true });
     const storage = new Storage();
     const session = c.get("session");
-    const files = (
-      Array.isArray(body["file"]) ? body["file"] : [body["file"]]
-    ) as File[];
+    const files = (Array.isArray(body.file) ? body.file : [body.file]) as
+      | File[]
+      | null;
 
     if (!session?.user) {
       c.status(401);
@@ -34,14 +34,15 @@ app.post("/upload", validateSession, async ({ req, res, ...c }) => {
 
     const uploadedFiles: Promise<DBFile>[] = [];
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    for (const file of files) {
       try {
         const uploadedFile = uploadLimit(() =>
-          storage.uploadFile({ file: file!, userId: session.user.id }),
+          storage.uploadFile({ file: file, userId: session.user.id }),
         );
-        if (uploadedFile) uploadedFiles.push(uploadedFile as Promise<DBFile>);
-      } catch {}
+        uploadedFiles.push(uploadedFile as Promise<DBFile>);
+      } catch {
+        /* empty */
+      }
     }
 
     const result = await Promise.all(uploadedFiles);
@@ -61,7 +62,7 @@ app.post("/upload", validateSession, async ({ req, res, ...c }) => {
   }
 });
 
-app.get("/download/:id", async ({ req, res, ...c }) => {
+app.get("/download/:id", async ({ req, ...c }) => {
   try {
     const { id } = req.param();
 
@@ -79,31 +80,40 @@ app.get("/download/:id", async ({ req, res, ...c }) => {
 
     const fileData = await storage.downloadFile({ fileId: id });
 
-    c.header("Content-Type", file.mimetype);
-    c.header(
-      "Content-Disposition",
-      `attachment; filename="${Buffer.from(file.name, "ascii").toString("utf-8")}"`,
-    );
-
-    if (fileData.type === "stream") {
-      return c.body(fileData.data as unknown as ReadableStream);
-    }
-
     const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(fileData.data);
+      async start(controller) {
+        const chunkSize = 1024 * 100; // Size of each chunk in bytes
+        const data = fileData.data;
+        let offset = 0;
+
+        while (offset < data.byteLength) {
+          const chunk = data.slice(offset, offset + chunkSize);
+          controller.enqueue(chunk);
+          offset += chunkSize;
+
+          await delay(250); // Adjust delay time in milliseconds
+        }
+
         controller.close();
       },
     });
-
-    return c.body(stream);
+    return new Response(stream, {
+      headers: {
+        "Content-Type": file.mimetype,
+        "Content-Disposition": `attachment; filename="${Buffer.from(file.name, "ascii").toString("utf-8")}"`,
+        "Content-Length": String(fileData.data.byteLength),
+      },
+    });
   } catch (error) {
     console.error("Error downloading file:", error);
     return c.json({ message: "Internal server error" });
   }
 });
 
-app.get("/thumbnail/:id", async ({ req, res, ...c }) => {
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+app.get("/thumbnail/:id", async ({ req, ...c }) => {
   try {
     const { id } = req.param();
 

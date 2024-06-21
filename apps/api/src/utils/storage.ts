@@ -3,7 +3,6 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { PassThrough } from "stream";
-import type { Readable } from "stream";
 import ffmpegPath from "ffmpeg-static";
 import ffprobeStatic from "ffprobe-static";
 import ffmpeg from "fluent-ffmpeg";
@@ -25,7 +24,7 @@ export class Storage {
     fileId,
   }: {
     fileId: string;
-  }): Promise<{ data: Buffer | Readable; type: "buffer" | "stream" }> {
+  }): Promise<{ data: Buffer; type: "buffer" }> {
     const fileEntry = await prisma.file.findUnique({
       where: { id: fileId },
       include: {
@@ -59,10 +58,11 @@ export class Storage {
     } else {
       return {
         data: await this.telegram.downloadChunk({
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: chunks[0]!.telegram.fileId,
-          stream: true,
+          stream: false,
         }),
-        type: "stream",
+        type: "buffer",
       };
     }
   }

@@ -6,7 +6,6 @@ import "dotenv/config";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { Hono } from "hono";
 import { hc } from "hono/client";
-import { compress } from "hono/compress";
 import { cors } from "hono/cors";
 
 import type { validateHonoSession } from "./api/auth/index.js";
@@ -26,7 +25,6 @@ const app = new Hono<Env>({
   strict: true,
 });
 
-app.use(compress());
 app.use(cors());
 app.use(
   "/api/*",
@@ -46,6 +44,10 @@ const routes = app
   .route("/auth", authRouter)
   .route("/files", fileRouter)
   .get("/", (c) => c.json({ message: "Hello world!" }));
+
+app.get("/dw", (c) => {
+  return c.json({ message: "Hello world!" });
+});
 
 serve(
   {

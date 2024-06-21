@@ -12,7 +12,6 @@ export const appRouter = createTRPCRouter({
   file: fileRouter,
   folder: folderRouter,
   auth: authRouter,
-  hello: publicProcedure.query(({}) => ({ hello: "world" })),
 });
 
 // export type definition of API

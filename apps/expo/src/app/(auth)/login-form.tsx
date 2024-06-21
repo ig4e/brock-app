@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -57,7 +56,7 @@ export default function Index() {
     setStatus("submitting");
 
     void signInMutation.mutate(data, {
-      onSuccess(data, variables, context) {
+      onSuccess(data) {
         setStatus("submitted");
 
         if (data.error) {
@@ -77,7 +76,7 @@ export default function Index() {
           });
         }
       },
-      onError(error, variables, context) {
+      onError(error) {
         setStatus("off");
         console.log(error, "err");
         toast.show("Failed", {
@@ -126,7 +125,7 @@ export default function Index() {
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
-                      placeholder="Username"
+                      placeholder="Email"
                       onBlur={onBlur}
                       onChangeText={onChange}
                       value={value}

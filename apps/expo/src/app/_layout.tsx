@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import "@bacons/text-decoder/install";
 
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import * as Font from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -12,8 +16,17 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { Menu } from "@tamagui/lucide-icons";
 import { ToastProvider, ToastViewport } from "@tamagui/toast";
-import { TamaguiProvider } from "tamagui";
+import {
+  Button,
+  Input,
+  TamaguiProvider,
+  Theme,
+  View,
+  XStack,
+  YStack,
+} from "tamagui";
 
 import { Toaster } from "~/components/toaster";
 import { TRPCProvider } from "~/utils/api";
@@ -24,7 +37,7 @@ export {
   ErrorBoundary,
 } from "expo-router";
 
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync();
 
 // This is the main layout of the app
 // It wraps your pages with the providers they need
@@ -39,7 +52,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      void SplashScreen.hideAsync();
     }
   }, [loaded]);
 
@@ -52,36 +65,59 @@ export default function RootLayout() {
       config={tamaguiConfig}
       defaultTheme={colorScheme as string}
     >
-      <ToastProvider>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <TRPCProvider>
-            {/*
-          The Stack component displays the current page.
-          It also allows you to configure your screens 
-        */}
-            <Stack>
-              <Stack.Screen
-                name="index"
-                options={{ headerShown: false, title: "Home" }}
+      <Theme name="purple">
+        <ToastProvider>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <TRPCProvider>
+              <Stack
+                screenOptions={{
+                  header() {
+                    return (
+                      <View theme="purple" bg={"$background"} p={"$4"}>
+                        <SafeAreaView>
+                          <YStack gap={"$2"}>
+                            <XStack w={"100%"} alignItems="center" gap={"$4"}>
+                              <Button borderRadius={"$12"} p={"$2"}>
+                                <Menu size={"$2"} color={"$accentBackground"} />
+                              </Button>
+
+                              <Input
+                                placeholder="Search in brock"
+                                borderRadius={"$12"}
+                                flex={1}
+                              />
+                            </XStack>
+                          </YStack>
+                        </SafeAreaView>
+                      </View>
+                    );
+                  },
+                }}
+              >
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{ headerShown: true, title: "Home" }}
+                />
+                
+                <Stack.Screen
+                  name="(auth)"
+                  options={{ headerShown: false, title: "Auth" }}
+                />
+              </Stack>
+              <StatusBar />
+              <Toaster />
+              <ToastViewport
+                flexDirection="column-reverse"
+                top={top}
+                left={left}
+                right={right}
               />
-              <Stack.Screen
-                name="(auth)"
-                options={{ headerShown: false, title: "Auth" }}
-              />
-            </Stack>
-            <StatusBar />
-            <Toaster />
-            <ToastViewport
-              flexDirection="column-reverse"
-              top={top}
-              left={left}
-              right={right}
-            />
-          </TRPCProvider>
-        </ThemeProvider>
-      </ToastProvider>
+            </TRPCProvider>
+          </ThemeProvider>
+        </ToastProvider>
+      </Theme>
     </TamaguiProvider>
   );
 }

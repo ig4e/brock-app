@@ -2,7 +2,8 @@ import { PrismaAdapter } from "@lucia-auth/adapter-prisma";
 import { bearerAuth } from "hono/bearer-auth";
 import { Lucia } from "lucia";
 
-import { prisma, User } from "../../db.js";
+import type { User } from "../../db.js";
+import { prisma } from "../../db.js";
 
 const adapter = new PrismaAdapter(prisma.session, prisma.user);
 
@@ -28,6 +29,7 @@ export const validateHonoSession = async function ({
 }) {
   const { session, user } = await lucia.validateSession(sessionId.trim());
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!session || !user) return null;
 
   return { session, user };

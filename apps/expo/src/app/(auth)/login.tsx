@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import { Link } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { LogIn } from "@tamagui/lucide-icons";
