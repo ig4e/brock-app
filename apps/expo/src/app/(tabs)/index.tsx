@@ -14,6 +14,7 @@ import {
 } from "@tamagui/lucide-icons";
 import { useToastController } from "@tamagui/toast";
 import { filesize } from "filesize";
+import { Skeleton } from "moti/skeleton";
 import {
   Button,
   Image,
@@ -31,7 +32,7 @@ import { api } from "~/utils/api";
 import { startDownload } from "~/utils/download";
 
 export default function Index() {
-  const { data } = api.file.getMany.useInfiniteQuery(
+  const { data, isLoading, fetchNextPage } = api.file.getMany.useInfiniteQuery(
     { limit: 50 },
     { getNextPageParam: ({ nextCursor }) => nextCursor },
   );
@@ -41,21 +42,24 @@ export default function Index() {
   return (
     <Theme name="dark_purple">
       <View p={"$4"} position="relative">
-        <ScrollView>
-          <FlashList
-            data={items}
-            renderItem={({ item }) => {
-              return <FileRow item={item} key={item.id} />;
-            }}
-            estimatedItemSize={200}
-          />
+        <Skeleton show={isLoading}>
+          <ScrollView>
+            <FlashList
+              data={items}
+              renderItem={({ item }) => {
+                return <FileRow item={item} key={item.id} />;
+              }}
+              estimatedItemSize={200}
+              onEndReached={() => void fetchNextPage()}
+            />
 
-          <Link href={"/(auth)/login"} asChild>
-            <Button>
-              <Text>Login</Text>
-            </Button>
-          </Link>
-        </ScrollView>
+            <Link href={"/(auth)/login"} asChild>
+              <Button>
+                <Text>Login</Text>
+              </Button>
+            </Link>
+          </ScrollView>
+        </Skeleton>
 
         <Button
           w={"$4"}
@@ -80,6 +84,24 @@ function FileRow({
   const [isOpen, setIsOpen] = useState(false);
   const fileUrl = `http://192.168.1.40:3000/files/download/${item.id}`;
   const toast = useToastController();
+
+  const deleteFile = api.file.delete.useMutation({
+    onSuccess: () => {
+      toast.show("File deleted successfully", { duration: 3000 });
+    },
+    onError: () => {
+      toast.show("Failed to delete file", { duration: 3000 });
+    },
+  });
+
+  // const renameFile = api.file.rename.useMutation({
+  //   onSuccess: () => {
+  //     toast.show("File renamed successfully", { duration: 3000 });
+  //   },
+  //   onError: () => {
+  //     toast.show("Failed to rename file", { duration: 3000 });
+  //   },
+  // });
 
   return (
     <>
@@ -177,25 +199,18 @@ function FileRow({
                 icon={Download}
                 justifyContent="flex-start"
                 onPress={() => {
-                  void startDownload({
-                    fileName: item.name,
-                    fileId: item.id,
-                    callback(data) {
-                      console.log(data);
-                    },
-                  })
-                    .then(() => {
-                      toast.show("Started", {
-                        message: `Started downloading`,
-                        preset: "success",
-                      });
-                    })
-                    .catch((error: Error) => {
-                      toast.show("Failed", {
-                        message: error.message,
-                        preset: "destructive",
-                      });
+                  try {
+                    startDownload({ file: item });
+                    toast.show("Started", {
+                      message: `Started downloading`,
+                      preset: "success",
                     });
+                  } catch (error) {
+                    toast.show("Failed", {
+                      message: (error as Error).message,
+                      preset: "destructive",
+                    });
+                  }
                 }}
               >
                 <Text>Download</Text>
@@ -214,6 +229,11 @@ function FileRow({
               justifyContent="flex-start"
               theme="red"
               borderColor={"$color3"}
+              onPress={() =>
+                deleteFile.mutate({
+                  id: item.id,
+                })
+              }
             >
               <Text>Delete</Text>
             </Button>

@@ -40,38 +40,29 @@ export class Storage {
 
     const chunks = fileEntry.chunks;
 
-    if (chunks.length > 1) {
-      const chunkBuffers = [];
+    const chunkBuffers = [];
 
-      for (const chunk of chunks) {
-        const chunkBuffer = await this.telegram.downloadChunk({
-          id: chunk.telegram.fileId,
-          stream: false,
-        });
-        chunkBuffers.push(chunkBuffer);
-      }
-
-      return {
-        data: Buffer.concat(chunkBuffers),
-        type: "buffer",
-      };
-    } else {
-      return {
-        data: await this.telegram.downloadChunk({
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: chunks[0]!.telegram.fileId,
-          stream: false,
-        }),
-        type: "buffer",
-      };
+    for (const chunk of chunks) {
+      const chunkBuffer = await this.telegram.downloadChunk({
+        id: chunk.telegram.fileId,
+        stream: false,
+      });
+      chunkBuffers.push(chunkBuffer);
     }
+
+    return {
+      data: Buffer.concat(chunkBuffers),
+      type: "buffer",
+    };
   }
 
   async uploadFile({ file, userId }: { file: File; userId: string }) {
     const totalChunks = Math.ceil(file.size / this.CHUNK_SIZE);
     const fileBuffer = Buffer.from(await file.arrayBuffer());
     const fileThumbnail = await this.generateThumbnail({ file });
-    const encodedFileName = Buffer.from(file.name, "ascii").toString("utf-8");
+    const encodedFileName = Buffer.from(file.name, "ascii")
+      .toString("utf-8")
+      .replace(/\//g, "-");
 
     const fileEntry = await prisma.file.create({
       data: {

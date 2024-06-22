@@ -82,21 +82,26 @@ app.get("/download/:id", async ({ req, ...c }) => {
 
     const stream = new ReadableStream({
       async start(controller) {
-        const chunkSize = 1024 * 100; // Size of each chunk in bytes
-        const data = fileData.data;
-        let offset = 0;
+        if (process.env.NODE_ENV === "development") {
+          const chunkSize = 1024 * 100; // Size of each chunk in bytes
+          const data = fileData.data;
+          let offset = 0;
 
-        while (offset < data.byteLength) {
-          const chunk = data.slice(offset, offset + chunkSize);
-          controller.enqueue(chunk);
-          offset += chunkSize;
+          while (offset < data.byteLength) {
+            const chunk = data.slice(offset, offset + chunkSize);
+            controller.enqueue(chunk);
+            offset += chunkSize;
 
-          await delay(250); // Adjust delay time in milliseconds
+            await delay(200); // Adjust delay time in milliseconds
+          }
+        } else {
+          controller.enqueue(fileData.data);
         }
 
         controller.close();
       },
     });
+
     return new Response(stream, {
       headers: {
         "Content-Type": file.mimetype,
@@ -113,6 +118,7 @@ app.get("/download/:id", async ({ req, ...c }) => {
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
 app.get("/thumbnail/:id", async ({ req, ...c }) => {
   try {
     const { id } = req.param();

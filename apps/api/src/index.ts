@@ -78,6 +78,8 @@ export {
   type RouterOutputs,
 };
 
+export * from "./db.js";
+
 export type HonoRouter = typeof routes;
 export * from "./api/auth/router.js";
 export const honoClient = hc<HonoRouter>("http://localhost:3000/");

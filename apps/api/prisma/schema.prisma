@@ -46,13 +46,15 @@ model File {
   mimetype String
   size     BigInt
 
-  folder Folder? @relation(fields: [folderId], references: [id])
-  chunks Chunk[]
-  user   User    @relation(fields: [userId], references: [id])
+  folder  Folder? @relation(fields: [folderId], references: [id])
+  chunks  Chunk[]
+  user    User    @relation(fields: [userId], references: [id])
+  deleted Boolean @default(false)
 
   userId   String
   folderId String?
 
+  deletedAt DateTime?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   thumbnail Thumbnail?

@@ -1,91 +1,107 @@
 import * as FileSystem from "expo-file-system";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import type { File } from "@acme/api";
+
+import { DownloadStatus, useDownloadStore } from "~/stores/download";
+import { useSettingsStore } from "~/stores/settings";
 import { getBaseUrl } from "./base-url";
 
-export const DOWNLOAD_KEY = "downloads6";
+async function saveDownload({ id }: { id: string }) {
+  const downloadStore = useDownloadStore.getState();
+  const settingsStore = useSettingsStore.getState();
+  const download = downloadStore.getDownload({ id });
 
-export enum DownloadStatus {
-  Downloading,
-  Paused,
-  Completed,
-}
+  let allowedDir = settingsStore.allowedDir;
 
-export interface Download {
-  name: string;
-  fileId: string;
-  fileUri: string;
-  url: string;
-  options: FileSystem.DownloadOptions;
-  resumeData?: string;
-  totalBytesExpectedToWrite?: number;
-  totalBytesWritten?: number;
-  status: DownloadStatus;
-}
+  if (!allowedDir) {
+    const permissions =
+      await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
-function updateDownloadState({
-  data,
-  fileId,
-  callback,
-}: {
-  data: { totalBytesExpectedToWrite: number; totalBytesWritten: number };
-  fileId: string;
-  callback?: (data: {
-    totalBytesExpectedToWrite: number;
-    totalBytesWritten: number;
-  }) => void;
-}) {
-  void updateDownload({
-    id: fileId,
-    data: {
-      totalBytesWritten: data.totalBytesWritten,
-      totalBytesExpectedToWrite: data.totalBytesExpectedToWrite,
-    },
+    if (permissions.granted) {
+      settingsStore.setAllowedDir(permissions.directoryUri);
+      allowedDir = permissions.directoryUri;
+    }
+  }
+
+  if (!allowedDir) return;
+
+  const base64 = await FileSystem.readAsStringAsync(download.fileUri, {
+    encoding: FileSystem.EncodingType.Base64,
   });
 
-  console.log(data);
-
-  callback && void callback(data);
+  await FileSystem.StorageAccessFramework.createFileAsync(
+    allowedDir,
+    download.name,
+    download.mimeType,
+  )
+    .then(async (uri) => {
+      await FileSystem.writeAsStringAsync(uri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    })
+    .catch((e) => console.log(e));
 }
 
-export async function startDownload({
-  fileId,
-  fileName,
-  callback,
+function downloadCallback({
+  id,
+  data,
 }: {
-  fileId: string;
+  id: string;
   fileName: string;
-  callback: (data: {
+  data: {
     totalBytesExpectedToWrite: number;
     totalBytesWritten: number;
-  }) => void;
+  };
 }) {
+  const downloadStore = useDownloadStore.getState();
+
+  if (data.totalBytesWritten === data.totalBytesExpectedToWrite) {
+    downloadStore.updateDownload({
+      fileId: id,
+      status: DownloadStatus.Completed,
+      totalBytesExpectedToWrite: data.totalBytesExpectedToWrite,
+      totalBytesWritten: data.totalBytesWritten,
+    });
+  } else {
+    downloadStore.updateDownload({
+      fileId: id,
+      status: DownloadStatus.Downloading,
+      totalBytesExpectedToWrite: data.totalBytesExpectedToWrite,
+      totalBytesWritten: data.totalBytesWritten,
+    });
+  }
+}
+
+export function startDownload({ file }: { file: File }) {
   try {
+    const downloadStore = useDownloadStore.getState();
+
     const downloadResumable = FileSystem.createDownloadResumable(
-      `${getBaseUrl()}/files/download/${fileId}`,
-      FileSystem.documentDirectory + fileName.replaceAll("/", "-"),
+      `${getBaseUrl()}/files/download/${file.id}`,
+      FileSystem.documentDirectory + file.name,
       {},
-      (data) => updateDownloadState({ data, fileId, callback }),
+      (data) =>
+        void downloadCallback({ data, id: file.id, fileName: file.name }),
     );
 
-    const currentDownloads = JSON.parse(
-      (await AsyncStorage.getItem(DOWNLOAD_KEY)) ?? "[]",
-    ) as Download[];
+    downloadStore.addDownload({
+      fileId: file.id,
+      name: file.name,
+      status: DownloadStatus.Downloading,
+      ...downloadResumable.savable(),
+      totalBytesExpectedToWrite: 1,
+      totalBytesWritten: 0,
+      mimeType: file.mimetype,
+    });
 
-    if (!currentDownloads.find((x) => x.fileId === fileId)) {
-      currentDownloads.push({
-        name: fileName,
-        fileId,
-        fileUri: FileSystem.documentDirectory + fileName.replaceAll("/", "-"),
-        url: `${getBaseUrl()}/files/download/${fileId}`,
-        options: {},
-        resumeData: undefined,
-        status: DownloadStatus.Downloading,
-      });
-    }
-
-    await AsyncStorage.setItem(DOWNLOAD_KEY, JSON.stringify(currentDownloads));
-    downloadResumable.downloadAsync().then(console.log).catch(console.log);
+    void downloadResumable
+      .downloadAsync()
+      .then((result) => {
+        if (result) {
+          void saveDownload({ id: file.id });
+        }
+      })
+      .catch(console.log);
 
     return downloadResumable;
   } catch (error) {
@@ -93,130 +109,88 @@ export async function startDownload({
   }
 }
 
-export async function updateDownload({
-  id,
-  data,
-}: {
-  id: string;
-  data: Partial<Download>;
-}) {
-  try {
-    const currentDownloads = JSON.parse(
-      (await AsyncStorage.getItem(DOWNLOAD_KEY)) ?? "[]",
-    ) as Download[];
+export function getDownload({ id }: { id: string }) {
+  const downloadStore = useDownloadStore.getState();
+  const download = downloadStore.getDownload({ id });
 
-    await AsyncStorage.setItem(
-      DOWNLOAD_KEY,
-      JSON.stringify(
-        currentDownloads.map((download) => {
-          if (download.fileId === id) {
-            return {
-              ...download,
-              ...data,
-              status:
-                data.totalBytesWritten === data.totalBytesExpectedToWrite
-                  ? DownloadStatus.Completed
-                  : DownloadStatus.Downloading,
-            };
-          }
+  const downloadResumable = new FileSystem.DownloadResumable(
+    download.url,
+    download.fileUri,
+    download.options,
+    (data) =>
+      void downloadCallback({
+        data,
+        id: download.fileId,
+        fileName: download.name,
+      }),
+    download.resumeData,
+  );
 
-          return download;
-        }),
-      ),
-    );
-  } catch (error) {
-    console.error("Error updating download:", error);
-  }
+  return downloadResumable;
 }
 
-export async function getDownload({
-  id,
-  callback,
-}: {
-  id: string;
-  callback: (data: {
-    totalBytesExpectedToWrite: number;
-    totalBytesWritten: number;
-  }) => void;
-}) {
+export function resumeDownload({ id }: { id: string }) {
   try {
-    const download = (
-      JSON.parse(
-        (await AsyncStorage.getItem(DOWNLOAD_KEY)) ?? "[]",
-      ) as Download[]
-    ).find((download: Download) => download.fileId === id);
-
-    if (download) {
-      console.log(download);
-      const downloadResumable = new FileSystem.DownloadResumable(
-        download.url,
-        download.fileUri,
-        download.options,
-        (data) => updateDownloadState({ data, fileId: id, callback }),
-        download.resumeData,
-      );
-
-      return downloadResumable;
-    } else {
-      console.error(`No download found with id: ${id}`);
-    }
-  } catch (error) {
-    console.error("Error getting download:", error);
-  }
-}
-
-export async function resumeDownload({ id }: { id: string }) {
-  try {
-    const download = await getDownload({
+    const downloadStore = useDownloadStore.getState();
+    const download = getDownload({
       id,
-      callback: () => {
-        console;
-      },
     });
 
-    if (download) {
-      console.log(`Resuming download with id: ${id}`);
-      download
-        .resumeAsync()
-        .then(() => {
-          void updateDownload({
-            id,
-            data: { status: DownloadStatus.Downloading },
-          });
-        })
-        .catch(console.log);
-    } else {
-      console.error(`No download found with id: ${id}`);
-    }
+    downloadStore.updateDownload({
+      fileId: id,
+      status: DownloadStatus.Downloading,
+    });
+
+    download
+      .resumeAsync()
+      .then((result) => {
+        if (result) {
+          void saveDownload({ id });
+        }
+      })
+      .catch(console.log);
   } catch (error) {
     console.error("Error resuming download:", error);
   }
 }
 
-export async function pauseDownload({ id }: { id: string }) {
+export function pauseDownload({ id }: { id: string }) {
   try {
-    const download = await getDownload({
+    const downloadStore = useDownloadStore.getState();
+    const download = getDownload({
       id,
-      callback: () => {
-        console;
-      },
     });
 
-    if (download) {
-      console.log(`Pausing download with id: ${id}`);
-      download
-        .pauseAsync()
-        .then(() => {
-          void updateDownload({
-            id,
-            data: { status: DownloadStatus.Paused, ...download.savable() },
-          });
-        })
-        .catch(console.log);
-    } else {
-      console.error(`No download found with id: ${id}`);
-    }
+    download.resumeAsync().then(console.log).catch(console.log);
+
+    download
+      .pauseAsync()
+      .then(() => {
+        downloadStore.updateDownload({
+          fileId: id,
+          status: DownloadStatus.Paused,
+        });
+      })
+      .catch(console.log);
   } catch (error) {
     console.error("Error pausing download:", error);
+  }
+}
+
+export function cancelDownload({ id }: { id: string }) {
+  try {
+    const downloadStore = useDownloadStore.getState();
+    const download = getDownload({
+      id,
+    });
+
+    download
+      .cancelAsync()
+      .then(() => {
+        downloadStore.removeDownload(id);
+      })
+      .catch(console.log);
+  } catch (error) {
+    console.error("Error canceling download:", error);
   }
 }
