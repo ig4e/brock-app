@@ -15,7 +15,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     resizeMode: "contain",
     backgroundColor: "#1F104A",
   },
+  runtimeVersion: {
+    policy: "appVersion",
+  },
   updates: {
+    url: "https://u.expo.dev/895a42cb-062f-4ca2-9b03-15b591b3ebd1",
     fallbackToCacheTimeout: 0,
   },
   assetBundlePatterns: ["**/*"],

@@ -3,26 +3,22 @@
     "version": ">= 4.1.2"
   },
   "build": {
-    "base": {
-      "node": "18.16.1",
-      "ios": {
-        "resourceClass": "m-medium"
+    "development": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
       }
     },
-    "development": {
-      "extends": "base",
-      "developmentClient": true,
-      "distribution": "internal"
-    },
     "preview": {
-      "extends": "base",
       "distribution": "internal",
-      "ios": {
-        "simulator": true
+      "android": {
+        "buildType": "apk"
       }
     },
     "production": {
-      "extends": "base"
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
