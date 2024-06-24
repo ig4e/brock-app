@@ -1,14 +1,15 @@
-import { useState } from "react";
-import { Share as RNShare } from "react-native";
-import { Link } from "expo-router";
-import { FlashList } from "@shopify/flash-list";
+import { useMemo, useState } from "react";
+import { FlatList, Share as RNShare } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
 import {
   Box,
   CircleEllipsis,
   Download,
+  File,
   Info,
   Pencil,
   Plus,
+  RefreshCcw,
   Share,
   Trash,
 } from "@tamagui/lucide-icons";
@@ -21,7 +22,6 @@ import {
   ScrollView,
   Sheet,
   Text,
-  Theme,
   View,
   XStack,
   YStack,
@@ -29,49 +29,114 @@ import {
 
 import type { RouterOutputs } from "~/utils/api";
 import { api } from "~/utils/api";
+import { getBaseUrl } from "~/utils/base-url";
 import { startDownload } from "~/utils/download";
+import { startUpload } from "~/utils/upload";
 
 export default function Index() {
-  const { data, isLoading, fetchNextPage } = api.file.getMany.useInfiniteQuery(
-    { limit: 50 },
-    { getNextPageParam: ({ nextCursor }) => nextCursor },
+  const { data, isLoading, isPending, fetchNextPage, refetch } =
+    api.file.getMany.useInfiniteQuery(
+      { limit: 20 },
+      { getNextPageParam: ({ nextCursor }) => nextCursor },
+    );
+
+  const items = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data],
   );
 
-  const items = data?.pages.flatMap((page) => page.items) ?? [];
+  return (
+    <View px={"$4"} position="relative" flex={1}>
+      <Skeleton show={isPending || isLoading}>
+        <FlatList
+          style={{ marginTop: 16 }}
+          refreshing={isLoading}
+          onRefresh={() => refetch()}
+          data={items}
+          renderItem={({ item }) => {
+            return <FileRow item={item} />;
+          }}
+          onEndReached={() => void fetchNextPage()}
+        />
+      </Skeleton>
+
+      <NewFile refetch={refetch} />
+    </View>
+  );
+}
+
+function NewFile({ refetch }: { refetch: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Theme name="dark_purple">
-      <View p={"$4"} position="relative">
-        <Skeleton show={isLoading}>
+    <>
+      <Button
+        w={"$4"}
+        borderRadius={"$12"}
+        position="absolute"
+        bottom="$4"
+        right="$4"
+        onPress={() => setIsOpen(true)}
+      >
+        <Plus size={"$2"} />
+      </Button>
+
+      <Sheet
+        onOpenChange={setIsOpen}
+        open={isOpen}
+        zIndex={100_000}
+        modal={true}
+        dismissOnSnapToBottom
+        snapPointsMode="fit"
+      >
+        <Sheet.Overlay />
+        <Sheet.Handle />
+        <Sheet.Frame p={"$4"}>
+          <XStack
+            gap={"$4"}
+            borderBottomWidth="$1"
+            pb={"$4"}
+            mb={"$4"}
+            borderColor={"$color3"}
+          >
+            <Text ellipse>New File</Text>
+          </XStack>
           <ScrollView>
-            <FlashList
-              data={items}
-              renderItem={({ item }) => {
-                return <FileRow item={item} key={item.id} />;
-              }}
-              estimatedItemSize={200}
-              onEndReached={() => void fetchNextPage()}
-            />
-
-            <Link href={"/(auth)/login"} asChild>
-              <Button>
-                <Text>Login</Text>
+            <YStack gap={"$4"}>
+              <Button
+                icon={File}
+                justifyContent="flex-start"
+                onPress={() => {
+                  DocumentPicker.getDocumentAsync({
+                    copyToCacheDirectory: true,
+                    multiple: true,
+                  })
+                    .then((res) => {
+                      if (!res.canceled) {
+                        for (const asset of res.assets) {
+                          void startUpload({ asset });
+                        }
+                      }
+                    })
+                    .catch((err) => {
+                      console.log(err);
+                    });
+                }}
+              >
+                <Text>Upload Files</Text>
               </Button>
-            </Link>
+              <Button
+                icon={RefreshCcw}
+                justifyContent="flex-start"
+                onPress={() => refetch()}
+              >
+                DH3WH
+              </Button>
+            </YStack>
           </ScrollView>
-        </Skeleton>
-
-        <Button
-          w={"$4"}
-          borderRadius={"$12"}
-          position="absolute"
-          bottom="$4"
-          right="$4"
-        >
-          <Plus size={"$2"} />
-        </Button>
-      </View>
-    </Theme>
+        </Sheet.Frame>
+      </Sheet>
+    </>
   );
 }
 
@@ -80,9 +145,9 @@ function FileRow({
 }: {
   item: RouterOutputs["file"]["getMany"]["items"][number];
 }) {
-  const thumbnail = `http://192.168.1.40:3000/files/thumbnail/${item.thumbnail?.id}`;
+  const thumbnail = `${getBaseUrl()}/files/thumbnail/${item.thumbnail?.id}`;
   const [isOpen, setIsOpen] = useState(false);
-  const fileUrl = `http://192.168.1.40:3000/files/download/${item.id}`;
+  const fileUrl = `${getBaseUrl()}/files/download/${item.id}`;
   const toast = useToastController();
 
   const deleteFile = api.file.delete.useMutation({

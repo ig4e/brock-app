@@ -207,18 +207,27 @@ importers:
       expo-auth-session:
         specifier: ~5.5.2
         version: 5.5.2(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
+      expo-blur:
+        specifier: ~13.0.2
+        version: 13.0.2(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
       expo-constants:
         specifier: ~16.0.1
         version: 16.0.1(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
       expo-dev-client:
         specifier: ~4.0.13
         version: 4.0.13(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
+      expo-document-picker:
+        specifier: ~12.0.2
+        version: 12.0.2(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
       expo-file-system:
         specifier: ~17.0.1
         version: 17.0.1(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
       expo-font:
         specifier: ~12.0.6
         version: 12.0.6(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
+      expo-image-picker:
+        specifier: ~15.0.5
+        version: 15.0.5(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
       expo-linear-gradient:
         specifier: ~13.0.2
         version: 13.0.2(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
@@ -252,6 +261,9 @@ importers:
       react-dom:
         specifier: 18.3.1
         version: 18.3.1(react@18.3.1)
+      react-hook-form:
+        specifier: ^7.51.4
+        version: 7.51.4(react@18.3.1)
       react-native:
         specifier: ~0.74.1
         version: 0.74.1(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(@types/react@18.3.2)(bufferutil@4.0.8)(react@18.3.1)
@@ -276,6 +288,9 @@ importers:
       tamagui:
         specifier: ^1.100.5
         version: 1.100.5(@types/react@18.3.2)(react-dom@18.3.1(react@18.3.1))(react-native@0.74.1(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(@types/react@18.3.2)(bufferutil@4.0.8)(react@18.3.1))(react@18.3.1)
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
     devDependencies:
       '@acme/api':
         specifier: workspace:*
@@ -4626,6 +4641,11 @@ packages:
   expo-auth-session@5.5.2:
     resolution: {integrity: sha512-fgqrNz9FhCl/kNyU2Vy2AmLWk+X7vmgiGN2KVUgB8yLHl/tPogYLpNOiqFl/pMLMveoKjPpVOVfbz3RTJHJoTg==}
 
+  expo-blur@13.0.2:
+    resolution: {integrity: sha512-t2p7BChO3Reykued++QJRMZ/og6J3aXtSQ+bU31YcBeXhZLkHwjWEhiPKPnJka7J2/yTs4+jOCNDY0kCZmcE3w==}
+    peerDependencies:
+      expo: '*'
+
   expo-constants@16.0.1:
     resolution: {integrity: sha512-s6aTHtglp926EsugWtxN7KnpSsE9FCEjb7CgEjQQ78Gpu4btj4wB+IXot2tlqNwqv+x7xFe5veoPGfJDGF/kVg==}
     peerDependencies:
@@ -4656,6 +4676,11 @@ packages:
     peerDependencies:
       expo: '*'
 
+  expo-document-picker@12.0.2:
+    resolution: {integrity: sha512-tmwuRWoCPv6SmNDSMEWcttMBJ95k8/g5sMWnHdmvOx0UKp0pFXP8FI+55HKtQpo6k2+118MkdDDhQSwKqASVAw==}
+    peerDependencies:
+      expo: '*'
+
   expo-file-system@17.0.1:
     resolution: {integrity: sha512-dYpnZJqTGj6HCYJyXAgpFkQWsiCH3HY1ek2cFZVHFoEc5tLz9gmdEgTF6nFHurvmvfmXqxi7a5CXyVm0aFYJBw==}
     peerDependencies:
@@ -4663,6 +4688,16 @@ packages:
 
   expo-font@12.0.6:
     resolution: {integrity: sha512-eognUxmZi2urCdERA5KuZpXUJO9JomOG/5ZKw9fGUhDi86SQ/6UWw+nMGbtshjWdJ0Vt0zHAdaIYx8aHq2iRzA==}
+    peerDependencies:
+      expo: '*'
+
+  expo-image-loader@4.7.0:
+    resolution: {integrity: sha512-cx+MxxsAMGl9AiWnQUzrkJMJH4eNOGlu7XkLGnAXSJrRoIiciGaKqzeaD326IyCTV+Z1fXvIliSgNW+DscvD8g==}
+    peerDependencies:
+      expo: '*'
+
+  expo-image-picker@15.0.5:
+    resolution: {integrity: sha512-Qqp16udsadx/YpNcNaWzfbmO0tbMxyX9bS1aFiDVC+Zffh8LY8S4HJJcnWqSC2TeuAl+9SxUwTloJagvPeMBBw==}
     peerDependencies:
       expo: '*'
 
@@ -13554,6 +13589,10 @@ snapshots:
       - expo
       - supports-color
 
+  expo-blur@13.0.2(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)):
+    dependencies:
+      expo: 51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)
+
   expo-constants@16.0.1(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)):
     dependencies:
       '@expo/config': 9.0.1
@@ -13598,6 +13637,10 @@ snapshots:
       expo-dev-menu-interface: 1.8.3(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
       semver: 7.6.0
 
+  expo-document-picker@12.0.2(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)):
+    dependencies:
+      expo: 51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)
+
   expo-file-system@17.0.1(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)):
     dependencies:
       expo: 51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)
@@ -13606,6 +13649,15 @@ snapshots:
     dependencies:
       expo: 51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)
       fontfaceobserver: 2.3.0
+
+  expo-image-loader@4.7.0(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)):
+    dependencies:
+      expo: 51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)
+
+  expo-image-picker@15.0.5(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)):
+    dependencies:
+      expo: 51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8)
+      expo-image-loader: 4.7.0(expo@51.0.2(@babel/core@7.24.5)(@babel/preset-env@7.24.5(@babel/core@7.24.5))(bufferutil@4.0.8))
 
   expo-json-utils@0.13.1: {}
 

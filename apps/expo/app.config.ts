@@ -6,6 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: "brock",
   scheme: "brock",
   version: "0.1.0",
+  owner: "sekai966",
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "automatic",
@@ -29,11 +30,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: "#1F104A",
     },
   },
-  // extra: {
-  //   eas: {
-  //     projectId: "your-eas-project-id",
-  //   },
-  // },
+  extra: {
+    eas: {
+      projectId: "895a42cb-062f-4ca2-9b03-15b591b3ebd1",
+    },
+  },
   experiments: {
     tsconfigPaths: true,
     typedRoutes: true,

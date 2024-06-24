@@ -17,6 +17,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { Menu } from "@tamagui/lucide-icons";
+import { PortalProvider } from "@tamagui/portal";
 import { ToastProvider, ToastViewport } from "@tamagui/toast";
 import {
   Button,
@@ -29,6 +30,7 @@ import {
 } from "tamagui";
 
 import { Toaster } from "~/components/toaster";
+import { useSettingsStore } from "~/stores/settings";
 import { TRPCProvider } from "~/utils/api";
 import { tamaguiConfig } from "../tamagui.config";
 
@@ -43,6 +45,7 @@ void SplashScreen.preventAutoHideAsync();
 // It wraps your pages with the providers they need
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const settings = useSettingsStore();
   const { left, top, right } = useSafeAreaInsets();
 
   const [loaded] = Font.useFonts({
@@ -65,56 +68,58 @@ export default function RootLayout() {
       config={tamaguiConfig}
       defaultTheme={colorScheme as string}
     >
-      <Theme name="purple">
+      <Theme name={settings.tint}>
         <ToastProvider>
           <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
-            <TRPCProvider>
-              <Stack
-                screenOptions={{
-                  header() {
-                    return (
-                      <View theme="purple" bg={"$background"} p={"$4"}>
-                        <SafeAreaView>
-                          <YStack gap={"$2"}>
-                            <XStack w={"100%"} alignItems="center" gap={"$4"}>
-                              <Button borderRadius={"$12"} p={"$2"}>
-                                <Menu size={"$2"} color={"$accentBackground"} />
-                              </Button>
+            <PortalProvider shouldAddRootHost>
+              <TRPCProvider>
+                <Stack
+                  screenOptions={{
+                    header() {
+                      return (
+                        <View bg={"$background"} p={"$4"}>
+                          <SafeAreaView>
+                            <YStack gap={"$2"}>
+                              <XStack w={"100%"} alignItems="center" gap={"$4"}>
+                                <Button borderRadius={"$12"} p={"$2"}>
+                                  <Menu size={"$2"} />
+                                </Button>
 
-                              <Input
-                                placeholder="Search in brock"
-                                borderRadius={"$12"}
-                                flex={1}
-                              />
-                            </XStack>
-                          </YStack>
-                        </SafeAreaView>
-                      </View>
-                    );
-                  },
-                }}
-              >
-                <Stack.Screen
-                  name="(tabs)"
-                  options={{ headerShown: true, title: "Home" }}
+                                <Input
+                                  placeholder="Search in brock"
+                                  borderRadius={"$12"}
+                                  flex={1}
+                                />
+                              </XStack>
+                            </YStack>
+                          </SafeAreaView>
+                        </View>
+                      );
+                    },
+                  }}
+                >
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: true, title: "Home" }}
+                  />
+
+                  <Stack.Screen
+                    name="(auth)"
+                    options={{ headerShown: false, title: "Auth" }}
+                  />
+                </Stack>
+                <StatusBar />
+                <Toaster />
+                <ToastViewport
+                  flexDirection="column-reverse"
+                  top={top}
+                  left={left}
+                  right={right}
                 />
-                
-                <Stack.Screen
-                  name="(auth)"
-                  options={{ headerShown: false, title: "Auth" }}
-                />
-              </Stack>
-              <StatusBar />
-              <Toaster />
-              <ToastViewport
-                flexDirection="column-reverse"
-                top={top}
-                left={left}
-                right={right}
-              />
-            </TRPCProvider>
+              </TRPCProvider>
+            </PortalProvider>
           </ThemeProvider>
         </ToastProvider>
       </Theme>

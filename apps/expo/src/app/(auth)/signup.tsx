@@ -29,13 +29,13 @@ const schema = z
   })
   .required();
 
-export default function Index() {
+export default function SignUp() {
   const authStore = useAuthStore();
   const toast = useToastController();
   const [status, setStatus] = useState<"off" | "submitting" | "submitted">(
     "off",
   );
-  const signInMutation = api.auth.signIn.useMutation({});
+  const signInMutation = api.auth.signUp.useMutation({});
   const router = useRouter();
 
   const {
@@ -70,7 +70,7 @@ export default function Index() {
           router.dismissAll();
           router.push("/");
           return toast.show("UWU~~ A Success", {
-            message: `Arlight here's your fresh session`,
+            message: `Arlight here's your fresh account`,
             preset: "success",
           });
         }
@@ -112,7 +112,7 @@ export default function Index() {
             </H3>
 
             <Paragraph textAlign="center" px={"$2"} pb={"$6"}>
-              Welcome Back!
+              Sign Up!
             </Paragraph>
 
             <YStack gap={"$4"} width={"100%"}>

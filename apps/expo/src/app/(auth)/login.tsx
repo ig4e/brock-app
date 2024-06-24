@@ -42,8 +42,8 @@ export default function Index() {
 
             <YStack gap={"$4"}>
               <Link asChild href="/(auth)/login-form">
-                <Button icon={LogIn} borderRadius={"$12"} theme="purple_active">
-                  <Text>Continue with Brock</Text>
+                <Button icon={LogIn} borderRadius={"$12"} theme="active">
+                  <Text>Login</Text>
                 </Button>
               </Link>
 
@@ -51,6 +51,12 @@ export default function Index() {
                 <Button borderRadius={"$12"}>
                   <Text>Cancel</Text>
                 </Button>
+              </Link>
+
+              <Link asChild href="/(auth)/signup">
+                <Text alignSelf="center" textDecorationLine="underline">
+                  Sign Up Instead.
+                </Text>
               </Link>
             </YStack>
           </YStack>

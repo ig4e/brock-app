@@ -1,13 +1,36 @@
-import { Cog, Download, Home } from "@tamagui/lucide-icons";
-import { Tabs } from "expo-router";
 import React from "react";
+import { Tabs } from "expo-router";
+import { Cog, Download, Home } from "@tamagui/lucide-icons";
+import { Button, Text } from "tamagui";
 
 function _layout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
+        tabBarButton(props) {
+          return (
+            //@ts-expect-error -- idk really
+            <Button chromeless mt={"$2"} h={"$5"} {...props}>
+              {props.children}
+            </Button>
+          );
+        },
+
+        tabBarLabel({ children, focused }) {
+          return (
+            <Text scale={0.8} color={focused ? "$color8" : "$color12"}>
+              {children}
+            </Text>
+          );
+        },
+
+        tabBarStyle: {
+          height: 64,
+          borderTopEndRadius: 16,
+          borderTopStartRadius: 16,
+        },
       }}
     >
       <Tabs.Screen
@@ -15,7 +38,7 @@ function _layout() {
         options={{
           title: "Home",
           tabBarIcon: ({ focused }) => (
-            <Home size={"$1.5"} color={focused ? "$color8" : "$color12"} />
+            <Home size={22} color={focused ? "$color8" : "$color12"} />
           ),
         }}
       />
@@ -25,7 +48,7 @@ function _layout() {
         options={{
           title: "Downloads",
           tabBarIcon: ({ focused }) => (
-            <Download size={"$1.5"} color={focused ? "$color8" : "$color12"} />
+            <Download size={22} color={focused ? "$color8" : "$color12"} />
           ),
         }}
       />
@@ -35,7 +58,7 @@ function _layout() {
         options={{
           title: "Settings",
           tabBarIcon: ({ focused }) => (
-            <Cog size={"$1.5"} color={focused ? "$color8" : "$color12"} />
+            <Cog size={22} color={focused ? "$color8" : "$color12"} />
           ),
         }}
       />

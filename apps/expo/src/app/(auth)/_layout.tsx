@@ -6,6 +6,8 @@ function AuthLayout() {
     <Stack>
       <Stack.Screen options={{ headerShown: false }} name="login" />
       <Stack.Screen options={{ headerShown: false }} name="login-form" />
+      <Stack.Screen options={{ headerShown: false }} name="signup" />
+
     </Stack>
   );
 }

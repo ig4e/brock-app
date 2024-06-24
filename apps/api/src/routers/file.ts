@@ -82,6 +82,9 @@ app.get("/download/:id", async ({ req, ...c }) => {
 
     const stream = new ReadableStream({
       async start(controller) {
+
+        console.log(process.env.NODE_ENV)
+
         if (process.env.NODE_ENV === "development") {
           const chunkSize = 1024 * 100; // Size of each chunk in bytes
           const data = fileData.data;
@@ -92,7 +95,7 @@ app.get("/download/:id", async ({ req, ...c }) => {
             controller.enqueue(chunk);
             offset += chunkSize;
 
-            await delay(200); // Adjust delay time in milliseconds
+            await delay(250); // Adjust delay time in milliseconds
           }
         } else {
           controller.enqueue(fileData.data);
